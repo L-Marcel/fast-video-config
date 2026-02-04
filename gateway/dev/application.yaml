@@ -1,0 +1,170 @@
+eureka:
+  instance:
+    appname: gateway
+  client:
+    service-url:
+      defaultZone: http://server1:8761/eureka,http://server2:8762/eureka,http://server3:8763/eureka
+
+# spring.devtools.restart.enabled=true
+# spring.devtools.restart.exclude=static/**,public/**
+# spring.servlet.multipart.max-file-size=10MB
+# spring.servlet.multipart.max-request-size=10MB
+
+# spring.data.redis.connect-timeout=2s
+# spring.data.redis.host=localhost
+# spring.data.redis.port=6379
+# spring.data.redis.password=root
+# spring.data.redis.timeout=1s
+
+# spring.cloud.gateway.server.webflux.routes[0].id=notices
+# spring.cloud.gateway.server.webflux.routes[0].uri=lb://notices
+# spring.cloud.gateway.server.webflux.routes[0].predicates[0]=Path=/notices/**
+# spring.cloud.gateway.server.webflux.routes[0].filters[0]=RewritePath=/notices(/?)(?<segment>.*), /$\{segment}
+# spring.cloud.gateway.server.webflux.routes[0].filters[1].name=Retry
+# spring.cloud.gateway.server.webflux.routes[0].filters[1].args.retries=3
+# spring.cloud.gateway.server.webflux.routes[0].filters[1].args.statuses=BAD_GATEWAY
+# spring.cloud.gateway.server.webflux.routes[0].filters[1].args.methods=GET,POST,PUT,DELETE
+# spring.cloud.gateway.server.webflux.routes[0].filters[1].args.backoff.firstBackoff=20ms
+# spring.cloud.gateway.server.webflux.routes[0].filters[1].args.backoff.maxBackoff=100ms
+# spring.cloud.gateway.server.webflux.routes[0].filters[1].args.backoff.factor=2
+# spring.cloud.gateway.server.webflux.routes[0].filters[1].args.backoff.basedOnPreviousValue=false
+# spring.cloud.gateway.server.webflux.routes[0].filters[2].name=CircuitBreaker
+# spring.cloud.gateway.server.webflux.routes[0].filters[2].args.name=notices
+# spring.cloud.gateway.server.webflux.routes[0].filters[3].name=RequestRateLimiter
+# spring.cloud.gateway.server.webflux.routes[0].filters[3].args.redis-rate-limiter.replenishRate=10
+# spring.cloud.gateway.server.webflux.routes[0].filters[3].args.redis-rate-limiter.burstCapacity=20
+# spring.cloud.gateway.server.webflux.routes[0].filters[3].args.redis-rate-limiter.requestedTokens=1
+# spring.cloud.gateway.server.webflux.routes[0].filters[3].args.key-resolver=#{@keyResolver}
+
+# spring.cloud.gateway.server.webflux.routes[1].uri=lb://extractions-mcp
+# spring.cloud.gateway.server.webflux.routes[1].predicates[0]=Path=/extractions-mcp/**
+# spring.cloud.gateway.server.webflux.routes[1].filters[0]=RewritePath=/extractions-mcp/(?!message)(?<segment>.*), /$\{segment}
+# spring.cloud.gateway.server.webflux.routes[1].filters[1]=RewritePath=/extractions-mcp/message(?<segment>/?.*), /extractions-mcp/message$\{segment}
+# spring.cloud.gateway.server.webflux.routes[1].filters[2].name=Retry
+# spring.cloud.gateway.server.webflux.routes[1].filters[2].args.retries=3
+# spring.cloud.gateway.server.webflux.routes[1].filters[2].args.statuses=BAD_GATEWAY
+# spring.cloud.gateway.server.webflux.routes[1].filters[2].args.methods=GET,POST,PUT,DELETE
+# spring.cloud.gateway.server.webflux.routes[1].filters[2].args.backoff.firstBackoff=20ms
+# spring.cloud.gateway.server.webflux.routes[1].filters[2].args.backoff.maxBackoff=100ms
+# spring.cloud.gateway.server.webflux.routes[1].filters[2].args.backoff.factor=2
+# spring.cloud.gateway.server.webflux.routes[1].filters[2].args.backoff.basedOnPreviousValue=false
+# spring.cloud.gateway.server.webflux.routes[1].filters[3].name=RequestRateLimiter
+# spring.cloud.gateway.server.webflux.routes[1].filters[3].args.redis-rate-limiter.replenishRate=10
+# spring.cloud.gateway.server.webflux.routes[1].filters[3].args.redis-rate-limiter.burstCapacity=20
+# spring.cloud.gateway.server.webflux.routes[1].filters[3].args.redis-rate-limiter.requestedTokens=1
+# spring.cloud.gateway.server.webflux.routes[1].filters[3].args.key-resolver=#{@keyResolver}
+
+# spring.cloud.gateway.server.webflux.routes[2].id=serverless
+# spring.cloud.gateway.server.webflux.routes[2].uri=lb://serverless
+# spring.cloud.gateway.server.webflux.routes[2].predicates[0]=Path=/serverless/**
+# spring.cloud.gateway.server.webflux.routes[2].filters[0]=RewritePath=/serverless(/?)(?<segment>.*), /$\{segment}
+# spring.cloud.gateway.server.webflux.routes[2].filters[1].name=Retry
+# spring.cloud.gateway.server.webflux.routes[2].filters[1].args.retries=2
+# spring.cloud.gateway.server.webflux.routes[2].filters[1].args.statuses=BAD_GATEWAY
+# spring.cloud.gateway.server.webflux.routes[2].filters[1].args.methods=GET,POST,PUT,DELETE
+# spring.cloud.gateway.server.webflux.routes[2].filters[1].args.backoff.firstBackoff=20ms
+# spring.cloud.gateway.server.webflux.routes[2].filters[1].args.backoff.maxBackoff=100ms
+# spring.cloud.gateway.server.webflux.routes[2].filters[1].args.backoff.factor=2
+# spring.cloud.gateway.server.webflux.routes[2].filters[1].args.backoff.basedOnPreviousValue=false
+# spring.cloud.gateway.server.webflux.routes[2].filters[2].name=CircuitBreaker
+# spring.cloud.gateway.server.webflux.routes[2].filters[2].args.name=serverless
+# spring.cloud.gateway.server.webflux.routes[2].filters[3].name=RequestRateLimiter
+# spring.cloud.gateway.server.webflux.routes[2].filters[3].args.redis-rate-limiter.replenishRate=100
+# spring.cloud.gateway.server.webflux.routes[2].filters[3].args.redis-rate-limiter.burstCapacity=120
+# spring.cloud.gateway.server.webflux.routes[2].filters[3].args.redis-rate-limiter.requestedTokens=1
+# spring.cloud.gateway.server.webflux.routes[2].filters[3].args.key-resolver=#{@keyResolver}
+
+# spring.cloud.gateway.server.webflux.routes[3].id=extractions
+# spring.cloud.gateway.server.webflux.routes[3].uri=lb://extractions
+# spring.cloud.gateway.server.webflux.routes[3].predicates[0]=Path=/extractions/**
+# spring.cloud.gateway.server.webflux.routes[3].filters[0]=RewritePath=/extractions(/?)(?<segment>.*), /$\{segment}
+# spring.cloud.gateway.server.webflux.routes[3].filters[1].name=Retry
+# spring.cloud.gateway.server.webflux.routes[3].filters[1].args.retries=3
+# spring.cloud.gateway.server.webflux.routes[3].filters[1].args.statuses=BAD_GATEWAY
+# spring.cloud.gateway.server.webflux.routes[3].filters[1].args.methods=GET,POST,PUT,DELETE
+# spring.cloud.gateway.server.webflux.routes[3].filters[1].args.backoff.firstBackoff=20ms
+# spring.cloud.gateway.server.webflux.routes[3].filters[1].args.backoff.maxBackoff=100ms
+# spring.cloud.gateway.server.webflux.routes[3].filters[1].args.backoff.factor=2
+# spring.cloud.gateway.server.webflux.routes[3].filters[1].args.backoff.basedOnPreviousValue=false
+# spring.cloud.gateway.server.webflux.routes[3].filters[2].name=CircuitBreaker
+# spring.cloud.gateway.server.webflux.routes[3].filters[2].args.name=extractions
+# spring.cloud.gateway.server.webflux.routes[3].filters[3].name=RequestRateLimiter
+# spring.cloud.gateway.server.webflux.routes[3].filters[3].args.redis-rate-limiter.replenishRate=10
+# spring.cloud.gateway.server.webflux.routes[3].filters[3].args.redis-rate-limiter.burstCapacity=20
+# spring.cloud.gateway.server.webflux.routes[3].filters[3].args.redis-rate-limiter.requestedTokens=1
+# spring.cloud.gateway.server.webflux.routes[3].filters[3].args.key-resolver=#{@keyResolver}
+
+# spring.cloud.loadbalancer.ribbon.enabled=false
+# spring.cloud.discovery.locator.enabled=true
+# spring.cloud.discovery.locator.lower-case-service-id=true
+
+# eureka.instance.prefer-ip-address=true
+# eureka.instance.lease-renewal-interval-in-seconds=4
+# eureka.instance.lease-expiration-duration-in-seconds=8
+# eureka.client.registry-fetch-interval-seconds=4
+
+# management.endpoint.gateway.access=read-only
+# management.endpoints.web.exposure.include=*
+# management.endpoint.health.show-details=always
+# management.endpoint.health.show-comonents=always
+# management.health.circuitbreakers.enabled=true
+# management.health.ratelimiters.enabled=true
+# management.endpoint.prometheus.access=read_only
+# management.tracing.sampling.probability=0.2
+# management.zipkin.read-timeout=15s
+# management.zipkin.connect-timeout=15s
+
+# resilience4j.timelimiter.configs.default.timeout-duration=20s
+# resilience4j.timelimiter.configs.default.cancel-running-future=true
+
+# resilience4j.circuitbreaker.instances.notices.slidingWindowType=COUNT_BASED
+# resilience4j.circuitbreaker.instances.notices.slidingWindowSize=4
+# resilience4j.circuitbreaker.instances.notices.waitDurationInOpenState=10s
+# resilience4j.circuitbreaker.instances.notices.failureRateThreshold=50
+# resilience4j.circuitbreaker.instances.notices.eventConsumerBufferSize=10
+# resilience4j.circuitbreaker.instances.notices.registerHealthIndicator=true
+# resilience4j.circuitbreaker.instances.notices.permittedNumberOfCallsInHalfOpenState=5
+
+# resilience4j.thread-pool-bulkhead.instances.notices.maxThreadPoolSize=30
+# resilience4j.thread-pool-bulkhead.instances.notices.coreThreadPoolSize=5
+# resilience4j.thread-pool-bulkhead.instances.notices.queueCapacity=15
+# resilience4j.thread-pool-bulkhead.instances.notices.writableStackTraceEnabled=true
+
+# resilience4j.circuitbreaker.instances.extractions.slidingWindowType=COUNT_BASED
+# resilience4j.circuitbreaker.instances.extractions.slidingWindowSize=4
+# resilience4j.circuitbreaker.instances.extractions.waitDurationInOpenState=10s
+# resilience4j.circuitbreaker.instances.extractions.failureRateThreshold=50
+# resilience4j.circuitbreaker.instances.extractions.eventConsumerBufferSize=10
+# resilience4j.circuitbreaker.instances.extractions.registerHealthIndicator=true
+# resilience4j.circuitbreaker.instances.extractions.permittedNumberOfCallsInHalfOpenState=5
+
+# resilience4j.thread-pool-bulkhead.instances.extractions.maxThreadPoolSize=30
+# resilience4j.thread-pool-bulkhead.instances.extractions.coreThreadPoolSize=5
+# resilience4j.thread-pool-bulkhead.instances.extractions.queueCapacity=15
+# resilience4j.thread-pool-bulkhead.instances.extractions.writableStackTraceEnabled=true
+
+# resilience4j.circuitbreaker.instances.extractions-mcp.slidingWindowType=COUNT_BASED
+# resilience4j.circuitbreaker.instances.extractions-mcp.slidingWindowSize=4
+# resilience4j.circuitbreaker.instances.extractions-mcp.waitDurationInOpenState=10s
+# resilience4j.circuitbreaker.instances.extractions-mcp.failureRateThreshold=50
+# resilience4j.circuitbreaker.instances.extractions-mcp.eventConsumerBufferSize=10
+# resilience4j.circuitbreaker.instances.extractions-mcp.registerHealthIndicator=true
+# resilience4j.circuitbreaker.instances.extractions-mcp.permitedNumberOfCallsInHalfOpenState=5
+
+# resilience4j.thread-pool-bulkhead.instances.extractions-mcp.maxThreadPoolSize=30
+# resilience4j.thread-pool-bulkhead.instances.extractions-mcp.coreThreadPoolSize=5
+# resilience4j.thread-pool-bulkhead.instances.extractions-mcp.queueCapacity=15
+# resilience4j.thread-pool-bulkhead.instances.extractions-mcp.writableStackTraceEnabled=true
+
+# resilience4j.circuitbreaker.instances.serverless.slidingWindowType=COUNT_BASED
+# resilience4j.circuitbreaker.instances.serverless.slidingWindowSize=4
+# resilience4j.circuitbreaker.instances.serverless.waitDurationInOpenState=4s
+# resilience4j.circuitbreaker.instances.serverless.failureRateThreshold=50
+# resilience4j.circuitbreaker.instances.serverless.eventConsumerBufferSize=10
+# resilience4j.circuitbreaker.instances.serverless.registerHealthIndicator=true
+# resilience4j.circuitbreaker.instances.serverless.permittedNumberOfCallsInHalfOpenState=5
+
+# resilience4j.thread-pool-bulkhead.instances.serverless.maxThreadPoolSize=30
+# resilience4j.thread-pool-bulkhead.instances.serverless.coreThreadPoolSize=5
+# resilience4j.thread-pool-bulkhead.instances.serverless.queueCapacity=15
+# resilience4j.thread-pool-bulkhead.instances.serverless.writableStackTraceEnabled=true
