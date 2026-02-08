@@ -55,7 +55,7 @@ spring:
   data:
     redis:
       connect-timeout: 2s
-      host: redis-master.db.svc.cluster.local
+      host: redis-master
       port: 6379
       password: root
       timeout: 1s
@@ -83,7 +83,7 @@ management:
       probability: 0.2
   otlp:
     tracing:
-      endpoint: http://tempo.monitoring.svc.cluster.local:4317 
+      endpoint: http://tempo:4317 
       transport: grpc
 
 
