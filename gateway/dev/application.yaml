@@ -55,7 +55,7 @@ spring:
   data:
     redis:
       connect-timeout: 2s
-      host: redis
+      host: redis-master.db.svc.cluster.local
       port: 6379
       password: root
       timeout: 1s
