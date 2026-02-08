@@ -1,40 +1,154 @@
-eureka:
-  instance:
-    appname: gateway
-  client:
-    service-url:
-      defaultZone: http://server1:8761/eureka,http://server2:8762/eureka,http://server3:8763/eureka
+spring:
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 10MB
+  cloud:
+    kubernetes:
+      discovery:
+        enabled: true
+      loadbalancer:
+        mode: POD
+    loadbalancer:
+      cache:
+        enabled: true 
+        ttl: 5s
+        capacity: 256
+    gateway:
+      server:
+        webflux:
+          routes:
+            - id: users
+              uri: lb://users
+              predicates:
+                - Path=/users/**
+              filters:
+                - RewritePath=/users(/?)(?<segment>.*), /$\{segment}
+                - name: Retry
+                  args:
+                    retries: 3
+                    statuses: BAD_GATEWAY
+                    methods: GET,POST,PUT,DELETE
+                    backoff:
+                      firstBackoff: 20ms
+                      maxBackoff: 100ms
+                      factor: 2
+                      basedOnPreviousValue: false
+                - name: CircuitBreaker
+                  args:
+                    name: users
+                - name: RequestRateLimiter
+                  args:
+                    redis-rate-limiter:
+                      replenishRate: 10
+                      burstCapacity: 20
+                      requestedTokens: 1
+                      key-resolver: #{@keyResolver}
+            #- id: videos
+            #  uri: lb://videos
+            #  predicates:
+            #    - Path=/videos/**
+            #- id: notifications
+            #  uri: lb://notifications
+            #  predicates:
+            #    - Path=/notifications/**
+  data:
+    redis:
+      connect-timeout: 2s
+      host: redis
+      port: 6379
+      password: root
+      timeout: 1s
 
-# spring.devtools.restart.enabled=true
-# spring.devtools.restart.exclude=static/**,public/**
-# spring.servlet.multipart.max-file-size=10MB
-# spring.servlet.multipart.max-request-size=10MB
+management:
+  endpoints:
+    web:
+      exposure:
+        include: '*'
+  health:
+    circuitbreakers:
+      enabled: true
+    ratelimiters:
+      enabled: true
+  endpoint:
+    gateway:
+      access: read-only
+    health:
+      show-details: always
+      show-components: always
+    prometheus:
+      access: read_only
+  tracing:
+    sampling:
+      probability: 0.2
+  otlp:
+    tracing:
+      endpoint: http://tempo.monitoring.svc.cluster.local:4317 
+      transport: grpc
 
-# spring.data.redis.connect-timeout=2s
-# spring.data.redis.host=localhost
-# spring.data.redis.port=6379
-# spring.data.redis.password=root
-# spring.data.redis.timeout=1s
 
-# spring.cloud.gateway.server.webflux.routes[0].id=notices
-# spring.cloud.gateway.server.webflux.routes[0].uri=lb://notices
-# spring.cloud.gateway.server.webflux.routes[0].predicates[0]=Path=/notices/**
-# spring.cloud.gateway.server.webflux.routes[0].filters[0]=RewritePath=/notices(/?)(?<segment>.*), /$\{segment}
-# spring.cloud.gateway.server.webflux.routes[0].filters[1].name=Retry
-# spring.cloud.gateway.server.webflux.routes[0].filters[1].args.retries=3
-# spring.cloud.gateway.server.webflux.routes[0].filters[1].args.statuses=BAD_GATEWAY
-# spring.cloud.gateway.server.webflux.routes[0].filters[1].args.methods=GET,POST,PUT,DELETE
-# spring.cloud.gateway.server.webflux.routes[0].filters[1].args.backoff.firstBackoff=20ms
-# spring.cloud.gateway.server.webflux.routes[0].filters[1].args.backoff.maxBackoff=100ms
-# spring.cloud.gateway.server.webflux.routes[0].filters[1].args.backoff.factor=2
-# spring.cloud.gateway.server.webflux.routes[0].filters[1].args.backoff.basedOnPreviousValue=false
-# spring.cloud.gateway.server.webflux.routes[0].filters[2].name=CircuitBreaker
-# spring.cloud.gateway.server.webflux.routes[0].filters[2].args.name=notices
-# spring.cloud.gateway.server.webflux.routes[0].filters[3].name=RequestRateLimiter
-# spring.cloud.gateway.server.webflux.routes[0].filters[3].args.redis-rate-limiter.replenishRate=10
-# spring.cloud.gateway.server.webflux.routes[0].filters[3].args.redis-rate-limiter.burstCapacity=20
-# spring.cloud.gateway.server.webflux.routes[0].filters[3].args.redis-rate-limiter.requestedTokens=1
-# spring.cloud.gateway.server.webflux.routes[0].filters[3].args.key-resolver=#{@keyResolver}
+resilience4j:
+  timelimiter:
+    configs:
+      default:
+        timeout-duration: 20s
+        cancel-running-future: true
+  circuitbreaker:
+    instances:
+      users:
+        slidingWindowType: COUNT_BASED
+        slidingWindowSize: 4
+        waitDurationInOpenState: 10s
+        failureRateThreshold: 50
+        eventConsumerBufferSize: 10
+        registerHealthIndicator: true
+        permittedNumberOfCallsInHalfOpenState: 5
+  thread-pool-bulkhead:
+    instances:
+      users:
+        maxThreadPoolSize: 60
+        coreThreadPoolSize: 10
+        queueCapacity: 20
+        writableStackTraceEnabled: true
+
+# resilience4j.circuitbreaker.instances.extractions.slidingWindowType=COUNT_BASED
+# resilience4j.circuitbreaker.instances.extractions.slidingWindowSize=4
+# resilience4j.circuitbreaker.instances.extractions.waitDurationInOpenState=10s
+# resilience4j.circuitbreaker.instances.extractions.failureRateThreshold=50
+# resilience4j.circuitbreaker.instances.extractions.eventConsumerBufferSize=10
+# resilience4j.circuitbreaker.instances.extractions.registerHealthIndicator=true
+# resilience4j.circuitbreaker.instances.extractions.permittedNumberOfCallsInHalfOpenState=5
+
+# resilience4j.thread-pool-bulkhead.instances.extractions.maxThreadPoolSize=30
+# resilience4j.thread-pool-bulkhead.instances.extractions.coreThreadPoolSize=5
+# resilience4j.thread-pool-bulkhead.instances.extractions.queueCapacity=15
+# resilience4j.thread-pool-bulkhead.instances.extractions.writableStackTraceEnabled=true
+
+# resilience4j.circuitbreaker.instances.extractions-mcp.slidingWindowType=COUNT_BASED
+# resilience4j.circuitbreaker.instances.extractions-mcp.slidingWindowSize=4
+# resilience4j.circuitbreaker.instances.extractions-mcp.waitDurationInOpenState=10s
+# resilience4j.circuitbreaker.instances.extractions-mcp.failureRateThreshold=50
+# resilience4j.circuitbreaker.instances.extractions-mcp.eventConsumerBufferSize=10
+# resilience4j.circuitbreaker.instances.extractions-mcp.registerHealthIndicator=true
+# resilience4j.circuitbreaker.instances.extractions-mcp.permitedNumberOfCallsInHalfOpenState=5
+
+# resilience4j.thread-pool-bulkhead.instances.extractions-mcp.maxThreadPoolSize=30
+# resilience4j.thread-pool-bulkhead.instances.extractions-mcp.coreThreadPoolSize=5
+# resilience4j.thread-pool-bulkhead.instances.extractions-mcp.queueCapacity=15
+# resilience4j.thread-pool-bulkhead.instances.extractions-mcp.writableStackTraceEnabled=true
+
+# resilience4j.circuitbreaker.instances.serverless.slidingWindowType=COUNT_BASED
+# resilience4j.circuitbreaker.instances.serverless.slidingWindowSize=4
+# resilience4j.circuitbreaker.instances.serverless.waitDurationInOpenState=4s
+# resilience4j.circuitbreaker.instances.serverless.failureRateThreshold=50
+# resilience4j.circuitbreaker.instances.serverless.eventConsumerBufferSize=10
+# resilience4j.circuitbreaker.instances.serverless.registerHealthIndicator=true
+# resilience4j.circuitbreaker.instances.serverless.permittedNumberOfCallsInHalfOpenState=5
+
+# resilience4j.thread-pool-bulkhead.instances.serverless.maxThreadPoolSize=30
+# resilience4j.thread-pool-bulkhead.instances.serverless.coreThreadPoolSize=5
+# resilience4j.thread-pool-bulkhead.instances.serverless.queueCapacity=15
+# resilience4j.thread-pool-bulkhead.instances.serverless.writableStackTraceEnabled=true
 
 # spring.cloud.gateway.server.webflux.routes[1].uri=lb://extractions-mcp
 # spring.cloud.gateway.server.webflux.routes[1].predicates[0]=Path=/extractions-mcp/**
@@ -93,78 +207,3 @@ eureka:
 # spring.cloud.gateway.server.webflux.routes[3].filters[3].args.redis-rate-limiter.burstCapacity=20
 # spring.cloud.gateway.server.webflux.routes[3].filters[3].args.redis-rate-limiter.requestedTokens=1
 # spring.cloud.gateway.server.webflux.routes[3].filters[3].args.key-resolver=#{@keyResolver}
-
-# spring.cloud.loadbalancer.ribbon.enabled=false
-# spring.cloud.discovery.locator.enabled=true
-# spring.cloud.discovery.locator.lower-case-service-id=true
-
-# eureka.instance.prefer-ip-address=true
-# eureka.instance.lease-renewal-interval-in-seconds=4
-# eureka.instance.lease-expiration-duration-in-seconds=8
-# eureka.client.registry-fetch-interval-seconds=4
-
-# management.endpoint.gateway.access=read-only
-# management.endpoints.web.exposure.include=*
-# management.endpoint.health.show-details=always
-# management.endpoint.health.show-comonents=always
-# management.health.circuitbreakers.enabled=true
-# management.health.ratelimiters.enabled=true
-# management.endpoint.prometheus.access=read_only
-# management.tracing.sampling.probability=0.2
-# management.zipkin.read-timeout=15s
-# management.zipkin.connect-timeout=15s
-
-# resilience4j.timelimiter.configs.default.timeout-duration=20s
-# resilience4j.timelimiter.configs.default.cancel-running-future=true
-
-# resilience4j.circuitbreaker.instances.notices.slidingWindowType=COUNT_BASED
-# resilience4j.circuitbreaker.instances.notices.slidingWindowSize=4
-# resilience4j.circuitbreaker.instances.notices.waitDurationInOpenState=10s
-# resilience4j.circuitbreaker.instances.notices.failureRateThreshold=50
-# resilience4j.circuitbreaker.instances.notices.eventConsumerBufferSize=10
-# resilience4j.circuitbreaker.instances.notices.registerHealthIndicator=true
-# resilience4j.circuitbreaker.instances.notices.permittedNumberOfCallsInHalfOpenState=5
-
-# resilience4j.thread-pool-bulkhead.instances.notices.maxThreadPoolSize=30
-# resilience4j.thread-pool-bulkhead.instances.notices.coreThreadPoolSize=5
-# resilience4j.thread-pool-bulkhead.instances.notices.queueCapacity=15
-# resilience4j.thread-pool-bulkhead.instances.notices.writableStackTraceEnabled=true
-
-# resilience4j.circuitbreaker.instances.extractions.slidingWindowType=COUNT_BASED
-# resilience4j.circuitbreaker.instances.extractions.slidingWindowSize=4
-# resilience4j.circuitbreaker.instances.extractions.waitDurationInOpenState=10s
-# resilience4j.circuitbreaker.instances.extractions.failureRateThreshold=50
-# resilience4j.circuitbreaker.instances.extractions.eventConsumerBufferSize=10
-# resilience4j.circuitbreaker.instances.extractions.registerHealthIndicator=true
-# resilience4j.circuitbreaker.instances.extractions.permittedNumberOfCallsInHalfOpenState=5
-
-# resilience4j.thread-pool-bulkhead.instances.extractions.maxThreadPoolSize=30
-# resilience4j.thread-pool-bulkhead.instances.extractions.coreThreadPoolSize=5
-# resilience4j.thread-pool-bulkhead.instances.extractions.queueCapacity=15
-# resilience4j.thread-pool-bulkhead.instances.extractions.writableStackTraceEnabled=true
-
-# resilience4j.circuitbreaker.instances.extractions-mcp.slidingWindowType=COUNT_BASED
-# resilience4j.circuitbreaker.instances.extractions-mcp.slidingWindowSize=4
-# resilience4j.circuitbreaker.instances.extractions-mcp.waitDurationInOpenState=10s
-# resilience4j.circuitbreaker.instances.extractions-mcp.failureRateThreshold=50
-# resilience4j.circuitbreaker.instances.extractions-mcp.eventConsumerBufferSize=10
-# resilience4j.circuitbreaker.instances.extractions-mcp.registerHealthIndicator=true
-# resilience4j.circuitbreaker.instances.extractions-mcp.permitedNumberOfCallsInHalfOpenState=5
-
-# resilience4j.thread-pool-bulkhead.instances.extractions-mcp.maxThreadPoolSize=30
-# resilience4j.thread-pool-bulkhead.instances.extractions-mcp.coreThreadPoolSize=5
-# resilience4j.thread-pool-bulkhead.instances.extractions-mcp.queueCapacity=15
-# resilience4j.thread-pool-bulkhead.instances.extractions-mcp.writableStackTraceEnabled=true
-
-# resilience4j.circuitbreaker.instances.serverless.slidingWindowType=COUNT_BASED
-# resilience4j.circuitbreaker.instances.serverless.slidingWindowSize=4
-# resilience4j.circuitbreaker.instances.serverless.waitDurationInOpenState=4s
-# resilience4j.circuitbreaker.instances.serverless.failureRateThreshold=50
-# resilience4j.circuitbreaker.instances.serverless.eventConsumerBufferSize=10
-# resilience4j.circuitbreaker.instances.serverless.registerHealthIndicator=true
-# resilience4j.circuitbreaker.instances.serverless.permittedNumberOfCallsInHalfOpenState=5
-
-# resilience4j.thread-pool-bulkhead.instances.serverless.maxThreadPoolSize=30
-# resilience4j.thread-pool-bulkhead.instances.serverless.coreThreadPoolSize=5
-# resilience4j.thread-pool-bulkhead.instances.serverless.queueCapacity=15
-# resilience4j.thread-pool-bulkhead.instances.serverless.writableStackTraceEnabled=true
