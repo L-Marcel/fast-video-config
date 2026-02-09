@@ -13,7 +13,7 @@ spring:
     keyspace-name: users
     username: cassandra
     password: cassandra
-    local-datacenter: datacenter1
+    local-datacenter: datacenter
     connection:
       connect-timeout: 5s
       init-query-timeout: 10s
