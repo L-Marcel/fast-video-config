@@ -52,6 +52,10 @@ spring:
       password: root
       timeout: 1s
 
+logging:
+  loki:
+    url: http://loki:3100/loki/api/v1/push
+
 logbook:
   exclude: /actuator/**
   logbook:
