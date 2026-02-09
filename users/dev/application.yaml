@@ -1,0 +1,68 @@
+spring:
+  mvc:
+    throw-exception-if-no-handler-found: true
+    resources:
+      add-mappings: false
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 10MB
+  cassandra:
+    contact-points: scylla-cluster-client
+    port: 9042
+    keyspace-name: users
+    username: cassandra
+    password: cassandra
+    local-datacenter: datacenter1
+    connection:
+      connect-timeout: 5s
+      init-query-timeout: 10s
+    request:
+      timeout: 5s
+
+springdoc:
+  api-docs:
+    path: /docs
+  swagger-ui:
+    path: /docs/swagger
+    operationsSorter: method
+
+logbook:
+  exclude: /actuator/**
+  logbook:
+    format: 
+      style: http
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: '*'
+  health:
+    circuitbreakers:
+      enabled: true
+    ratelimiters:
+      enabled: true
+  endpoint:
+    health:
+      show-details: always
+      show-components: always
+    prometheus:
+      access: read_only
+  tracing:
+    sampling:
+      probability: 0.2
+  otlp:
+    tracing:
+      endpoint: http://tempo:4317 
+      transport: grpc
+
+app:
+  security:
+    jwt:
+      secret: U29tZVNlY3JldEtleU5lZWRzVG9CZUF0TGVhc3QzMkJ5dGVz
+    cors:
+      allowed:
+        origins: http://localhost:3000
+        methods: '*'
+        headers: '*'

@@ -44,14 +44,6 @@ spring:
                       burstCapacity: 20
                       requestedTokens: 1
                       key-resolver: #{@keyResolver}
-            #- id: videos
-            #  uri: lb://videos
-            #  predicates:
-            #    - Path=/videos/**
-            #- id: notifications
-            #  uri: lb://notifications
-            #  predicates:
-            #    - Path=/notifications/**
   data:
     redis:
       connect-timeout: 2s
@@ -59,6 +51,12 @@ spring:
       port: 6379
       password: root
       timeout: 1s
+
+logbook:
+  exclude: /actuator/**
+  logbook:
+    format: 
+      style: http
 
 management:
   endpoints:
@@ -85,7 +83,6 @@ management:
     tracing:
       endpoint: http://tempo:4317 
       transport: grpc
-
 
 resilience4j:
   timelimiter:
