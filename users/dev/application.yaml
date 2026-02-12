@@ -60,7 +60,7 @@ management:
       transport: grpc
 
 minio:
-  url: http://minio:9000
+  url: http://minio.minio-tenant.svc.cluster.local:80
   access-key: root
   secret-key: root
   bucket: avatars
