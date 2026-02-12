@@ -47,7 +47,7 @@ spring:
   data:
     redis:
       connect-timeout: 2s
-      host: redis-master
+      host: redis
       port: 6379
       password: root
       timeout: 1s
