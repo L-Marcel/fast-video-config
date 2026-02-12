@@ -58,6 +58,7 @@ management:
     tracing:
       endpoint: http://tempo:4317 
       transport: grpc
+      timeout: 30s
 
 minio:
   url: http://minio.minio-tenant.svc.cluster.local:80

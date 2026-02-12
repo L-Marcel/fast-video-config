@@ -87,6 +87,7 @@ management:
     tracing:
       endpoint: http://tempo:4317 
       transport: grpc
+      timeout: 30s
 
 resilience4j:
   timelimiter:
