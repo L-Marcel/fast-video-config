@@ -4,6 +4,23 @@ spring:
       max-file-size: 10MB
       max-request-size: 10MB
   cloud:
+    gateway:
+      globalcors:
+        cors-configurations:
+          '[/**]':
+            exposedHeaders: 
+              - "Filename"
+              - "Content-Disposition"
+            allowedOrigins:
+              - "http://localhost"
+            allowedMethods:
+              - GET
+              - POST
+              - PUT
+              - DELETE
+              - OPTIONS
+            allowedHeaders: "*"
+            allowCredentials: true
     kubernetes:
       discovery:
         enabled: true
@@ -18,6 +35,33 @@ spring:
       server:
         webflux:
           routes:
+            - id: users_auth
+              uri: lb://users
+              predicates:
+                - Path=/users/**
+                - Header=Authorization, Bearer .*
+              filters:
+                - RewritePath=/users(/?)(?<segment>.*), /$\{segment}
+                - name: Retry
+                  args:
+                    retries: 3
+                    statuses: BAD_GATEWAY
+                    methods: GET,POST,PUT,DELETE
+                    backoff:
+                      firstBackoff: 20ms
+                      maxBackoff: 100ms
+                      factor: 2
+                      basedOnPreviousValue: false
+                - name: CircuitBreaker
+                  args:
+                    name: users
+                - name: RequestRateLimiter
+                  args:
+                    redis-rate-limiter:
+                      replenishRate: 120
+                      burstCapacity: 20
+                      requestedTokens: 1
+                      key-resolver: #{@keyResolver}
             - id: users
               uri: lb://users
               predicates:
@@ -26,7 +70,7 @@ spring:
                 - RewritePath=/users(/?)(?<segment>.*), /$\{segment}
                 - name: Retry
                   args:
-                    retries: 3
+                    retries: 2
                     statuses: BAD_GATEWAY
                     methods: GET,POST,PUT,DELETE
                     backoff:
@@ -51,6 +95,11 @@ spring:
       port: 6379
       password: root
       timeout: 1s
+
+app:
+  security:
+    jwt:
+      secret: U29tZVNlY3JldEtleU5lZWRzVG9CZUF0TGVhc3QzMkJ5dGVz
 
 logging:
   loki:
