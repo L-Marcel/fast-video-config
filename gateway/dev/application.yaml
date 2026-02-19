@@ -38,10 +38,10 @@ spring:
             - id: users_auth
               uri: lb://users
               predicates:
-                - Path=/users/**
+                - Path=/api/v1/users/**
                 - Header=Authorization, Bearer .*
               filters:
-                - RewritePath=/users(/?)(?<segment>.*), /$\{segment}
+                - RewritePath=/api/v1/users(/?)(?<segment>.*), /$\{segment}
                 - name: Retry
                   args:
                     retries: 3
@@ -65,9 +65,9 @@ spring:
             - id: users
               uri: lb://users
               predicates:
-                - Path=/users/**
+                - Path=/api/v1/users/**
               filters:
-                - RewritePath=/users(/?)(?<segment>.*), /$\{segment}
+                - RewritePath=/api/v1/users(/?)(?<segment>.*), /$\{segment}
                 - name: Retry
                   args:
                     retries: 2
