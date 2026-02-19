@@ -4,6 +4,16 @@ spring:
       max-file-size: 10MB
       max-request-size: 10MB
   cloud:
+    kubernetes:
+      discovery:
+        enabled: true
+      loadbalancer:
+        mode: POD
+    loadbalancer:
+      cache:
+        enabled: true 
+        ttl: 5s
+        capacity: 256
     gateway:
       globalcors:
         cors-configurations:
@@ -21,17 +31,6 @@ spring:
               - OPTIONS
             allowedHeaders: "*"
             allowCredentials: true
-    kubernetes:
-      discovery:
-        enabled: true
-      loadbalancer:
-        mode: POD
-    loadbalancer:
-      cache:
-        enabled: true 
-        ttl: 5s
-        capacity: 256
-    gateway:
       server:
         webflux:
           routes:
