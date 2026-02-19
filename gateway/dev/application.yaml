@@ -58,8 +58,8 @@ spring:
                 - name: RequestRateLimiter
                   args:
                     redis-rate-limiter:
-                      replenishRate: 120
-                      burstCapacity: 20
+                      replenishRate: 20
+                      burstCapacity: 40
                       requestedTokens: 1
                       key-resolver: #{@keyResolver}
             - id: users
@@ -84,8 +84,34 @@ spring:
                 - name: RequestRateLimiter
                   args:
                     redis-rate-limiter:
-                      replenishRate: 10
-                      burstCapacity: 20
+                      replenishRate: 20
+                      burstCapacity: 120
+                      requestedTokens: 1
+                      key-resolver: #{@keyResolver}
+            - id: frontend
+              uri: lb://frontend
+              predicates:
+                - Path=/**
+              filters:
+                - RewritePath=/(?<segment>.*), /$\{segment}
+                - name: Retry
+                  args:
+                    retries: 2
+                    statuses: BAD_GATEWAY
+                    methods: GET,POST,PUT,DELETE
+                    backoff:
+                      firstBackoff: 20ms
+                      maxBackoff: 100ms
+                      factor: 2
+                      basedOnPreviousValue: false
+                - name: CircuitBreaker
+                  args:
+                    name: frontend
+                - name: RequestRateLimiter
+                  args:
+                    redis-rate-limiter:
+                      replenishRate: 60
+                      burstCapacity: 200
                       requestedTokens: 1
                       key-resolver: #{@keyResolver}
   data:
@@ -148,18 +174,31 @@ resilience4j:
     instances:
       users:
         slidingWindowType: COUNT_BASED
-        slidingWindowSize: 4
+        slidingWindowSize: 8
         waitDurationInOpenState: 10s
         failureRateThreshold: 50
         eventConsumerBufferSize: 10
         registerHealthIndicator: true
-        permittedNumberOfCallsInHalfOpenState: 5
+        permittedNumberOfCallsInHalfOpenState: 6
+      frontend:
+        slidingWindowType: COUNT_BASED
+        slidingWindowSize: 16
+        waitDurationInOpenState: 10s
+        failureRateThreshold: 50
+        eventConsumerBufferSize: 10
+        registerHealthIndicator: true
+        permittedNumberOfCallsInHalfOpenState: 8
   thread-pool-bulkhead:
     instances:
       users:
         maxThreadPoolSize: 60
         coreThreadPoolSize: 10
         queueCapacity: 20
+        writableStackTraceEnabled: true
+      frontend:
+        maxThreadPoolSize: 120
+        coreThreadPoolSize: 20
+        queueCapacity: 30
         writableStackTraceEnabled: true
 
 # resilience4j.circuitbreaker.instances.extractions.slidingWindowType=COUNT_BASED
